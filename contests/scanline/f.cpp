@@ -29,23 +29,31 @@ void Solve()
         [](event a, event b) {return (a.x < b.x || (a.x == b.x && a.type < b.type));});
 
     vector<int> player_contacts(n);
-    set<int> current_players;
+    int prefix = 0;
+    int ended = 0;
+    // set<int> current_players;
     int current_contacts = 0;
     for (auto it = events.begin(); it != events.end(); ++it) {
         if (it->type == 0) {
-            for (auto p : current_players) {
-                ++player_contacts[p];
-            }
-            player_contacts[it->player] = current_contacts;
-            current_players.insert(it->player);
+            // for (auto p : current_players) {
+            //     ++player_contacts[p];
+            // }
+            // player_contacts[it->player] = current_contacts;
+            // current_players.insert(it->player);
+            player_contacts[it->player] = ended;
             ++current_contacts;
+            ++prefix;
         }
         
         if (it->type == 1) {
-            current_players.erase(it->player);
+            // current_players.erase(it->player);
+            player_contacts[it->player] = prefix - player_contacts[it->player] - 1;
             --current_contacts;
+            ++ended;
         }
     }
+
+
 
     for (int i = 0; i < n; ++i) {
         cout << player_contacts[i] << '\n';
@@ -56,6 +64,6 @@ int main()
 {
     std::ios_base::sync_with_stdio(false);
     std::cin.tie(NULL);
-    Solve();
+    Solve(); 
     return 0;
 }
