@@ -16,9 +16,17 @@ int Log(int n)
 }
 
 struct Node {
-    vector<int64_t> segment; // sorted segment
-    vector<int64_t> inversions; // vector of inversions for each element
-    int64_t triple_inversions; // number of triple inversions
+    vector<int32_t> segment;
+    vector<int64_t> left_greater;
+    vector<int64_t> right_lower;
+
+    Node(int32_t value) {
+        segment.push_back(value);
+        left_greater.push_back(0);
+        right_lower.push_back(0);
+    }
+
+    Node() = default;
 };
 
 int Left(int v)
@@ -34,52 +42,41 @@ int Right(int v)
 Node Merge(Node& left, Node& right)
 {
     Node node{};
-    node.triple_inversions = left.triple_inversions + right.triple_inversions;
-    int i = 0, j = 0;
-    vector<int64_t> postfix_left_inversions(left.inversions.size());
 
-    for (int k = left.inversions.size() - 1; k >= 0; --k) {
-        if (k == left.inversions.size() - 1) {
-            postfix_left_inversions[k] = left.inversions[k];
-        } else {
-            postfix_left_inversions[k] = postfix_left_inversions[k+1] + left.inversions[k];
-        }
-    }
-    
-    while (i < left.segment.size() && j < right.segment.size()) {
-        if (left.segment[i] > right.segment[j]) { // i == left.segment.size() || j < right.segment.size() && 
-            node.triple_inversions += postfix_left_inversions[i];
+    int i = 0, j = 0;
+    while (i < left.segment.size() || j < right.segment.size()) {
+        if (i == left.segment.size() || j < right.segment.size() && left.segment[i] > right.segment[j]) {
             node.segment.push_back(right.segment[j]);
-            node.inversions.push_back(left.segment.size() - i + right.inversions[j]);
+            node.left_greater.push_back(left.segment.size() - i + right.left_greater[j]);
+            node.right_lower.push_back(right.right_lower[j]);
             ++j;
         } else {
             node.segment.push_back(left.segment[i]);
-            node.inversions.push_back(0 + left.inversions[i]);
+            node.left_greater.push_back(left.left_greater[i]);
+            node.right_lower.push_back(j + left.right_lower[i]);
             ++i;
         }
     }
 
-    while (i < left.segment.size()) {
-        node.segment.push_back(left.segment[i]);
-        node.inversions.push_back(left.inversions[i]);
-        ++i;
-    }
+    // only to pass the 21st test with memory limit
+    left.left_greater.clear();
+    left.left_greater.shrink_to_fit();
+    left.right_lower.clear();
+    left.right_lower.shrink_to_fit();
 
-    while (j < right.segment.size()) {
-        node.segment.push_back(right.segment[j]);
-        node.inversions.push_back(right.inversions[j]);
-        ++j;
-    }
+    right.left_greater.clear();
+    right.left_greater.shrink_to_fit();
+    right.right_lower.clear();
+    right.right_lower.shrink_to_fit();
 
     return node;
 }
 
-void Build(vector<Node>& t, vector<int64_t>& a, int v, int l, int r)
+void Build(vector<Node>& t, vector<int32_t>& a, int v, int l, int r)
 {
     if (r - l == 1) {
         if (l < a.size()) {
-            t[v].segment.push_back(a[l]);
-            t[v].inversions.push_back(0);
+            t[v] = Node(a[l]);
         }
     } else {
         int m = (l + r) / 2;
@@ -87,6 +84,16 @@ void Build(vector<Node>& t, vector<int64_t>& a, int v, int l, int r)
         Build(t, a, Right(v), m, r);
         t[v] = Merge(t[Left(v)], t[Right(v)]);
     }
+}
+
+int64_t DotProduct(vector<int64_t>& a, vector<int64_t>& b)
+{
+    int size = min(a.size(), b.size());
+    int64_t product = 0;
+    for (int i = 0; i < size; ++i) {
+        product += a[i] * b[i];
+    }
+    return product;
 }
 
 int main()
@@ -100,18 +107,18 @@ int main()
     int tree_size = (1 << Log(n));
     vector<Node> t(2 * tree_size - 1);
 
-    vector<int64_t> a(n);
+    vector<int32_t> a(n);
     for (int i = 0; i < n; ++i) {
         cin >> a[i];
     }
     Build(t, a, 0, 0, tree_size);
 
-    cout << t[0].triple_inversions << '\n';
+    cout << DotProduct(t[0].left_greater, t[0].right_lower) << '\n';
 
-    for (int i = 0; i < n; ++i) {
-        cout << t[0].inversions[i] << ' ';
-    }
-    cout << '\n';
+    // for (int i = 0; i < n; ++i) {
+    //     cout << t[0].inversions[i] << ' ';
+    // }
+    // cout << '\n';
     
     return 0;
 }
