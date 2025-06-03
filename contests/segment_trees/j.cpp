@@ -2,7 +2,7 @@
 #include <vector>
 #include <algorithm>
 #include <string>
-#include <set>
+#include <unordered_set>
  
 using namespace std;
  
@@ -29,38 +29,34 @@ int Right(int v)
 vector<int> Merge(vector<int> left, vector<int> right)
 {   
     // vector stores ids of opened and yet not closed segments
-    set<int> s;
-    for (int i = 0; i < left.size(); ++i) {
-        if (left[i] > 0) {
-            s.insert(left[i]);
+    unordered_set<int> s;
+    for (int id : left) {
+        if (id > 0) {
+            s.insert(id);
         } else {
-            auto it = s.find(-left[i]);
+            auto it = s.find(-id);
             if (it != s.end()) {
                 s.erase(it);
             } else {
-                s.insert(left[i]);
+                s.insert(id);
             }
         }
     }
-    for (int i = 0; i < right.size(); ++i) {
-        if (right[i] > 0) {
-            s.insert(right[i]);
+
+    for (int id : right) {
+        if (id > 0) {
+            s.insert(id);
         } else {
-            auto it = s.find(-right[i]);
+            auto it = s.find(-id);
             if (it != s.end()) {
                 s.erase(it);
             } else {
-                s.insert(right[i]);
+                s.insert(id);
             }
         }
     }
  
-    vector<int> node;
-    for (auto it = s.begin(); it != s.end(); ++it) {
-        node.push_back(*it);
-    }
- 
-    return node;
+    return vector<int>(s.begin(), s.end());
 }
  
 void Update(vector<vector<int>>& t, int v, int l, int r, int id, int ql, int qr)
@@ -112,7 +108,7 @@ int main()
         Update(t, 0, 0, tree_size, i, ql-1, qr);
     }
     for (int j = 0; j < m; ++j) {
-        set<int> segment_ids;
+        unordered_set<int> segment_ids;
         int cnt;
         cin >> cnt;
         for (int k = 0; k < cnt; ++k) {

@@ -119,6 +119,7 @@
         "typeinfo": "cpp",
         "variant": "cpp",
         "stack": "cpp",
-        "queue": "cpp"
+        "queue": "cpp",
+        "execution": "cpp"
     }
 }
